@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
+from analizador_lexico import Analizador
+from Parser import Parser
 
 
 class App:
@@ -186,14 +188,52 @@ class App:
             )
 
     def analizar(self):
+        global lineas
+        lineas = ""
+        listaTokens = []
+
         if self.file_path:
-            pass
-        else:
-            # Muestra un mensaje de advertencia si no hay archivo abierto
-            messagebox.showerror(
-                "Archivo no seleccionado",
-                "Por favor, abra un archivo antes de analizar.",
+            with open(self.file_path, "r") as archivo:
+                for i in archivo.readlines():
+                    lineas += i
+            self.text_area2.delete("1.0", tk.END)  # limpia el área de texto
+            self.text_area2.insert(tk.END, lineas)
+
+            # Ahora, puedes crear una instancia de Analizador con el contenido del archivo
+            lexer = Analizador(lineas)
+            lexer.analizar()
+            listaTokens = lexer.tokens_reconocidos
+
+            # Limpia el área de texto antes de mostrar los resultados
+            self.text_area2.delete("1.0", tk.END)
+
+            # Muestra los tokens en el área de texto
+            self.text_area2.insert(
+                tk.END,
+                "\n*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-*-*-*-*-*-*-*-* Tokens *-*-*-*-*-*-*-*-*-*-*-*-*-**-*-*-*-*-*-*-*-*-**\n",
             )
+            self.text_area2.insert(
+                tk.END,
+                "\n",
+            )
+            for token in listaTokens:
+                self.text_area2.insert(
+                    tk.END, "============> " + str(token) + " <============" + "\n"
+                )
+
+            messagebox.showinfo(
+                "Análisis Completado", "El análisis se ha completado correctamente."
+            )
+
+            parser = Parser(listaTokens)
+            resultados = parser.parsear()
+
+        else:
+            messagebox.showerror(
+                "Archivo no cargado",
+                "Por favor, cargue un archivo antes de realizar el análisis.",
+            )
+            return  # Salir de la función si no hay archivo cargado
 
     def ver_tokens(self):
         if self.file_path:
