@@ -226,7 +226,7 @@ class App:
             )
 
             parser = Parser(listaTokens)
-            resultados = parser.parsear()
+            parser.parsear()
 
         else:
             messagebox.showerror(

@@ -51,6 +51,7 @@ class Analizador:
 
         self.tokens_reconocidos = []
         self.errores = []
+        in_comentario = False
 
         # Análisis de caracter por caracter
         for caracter in self.texto:
@@ -72,6 +73,8 @@ class Analizador:
                     lexema += caracter
                     estado = 3
                     estado_anterior = 0
+                elif caracter == "#":
+                    in_comentario = True
                 else:
                     # Se omiten espacios, tabulaciones y saltos de línea
                     if ascii == 32 or ascii == 9 or ascii == 10:
@@ -86,6 +89,12 @@ class Analizador:
                     lexema = ""
                     estado = 0
                     estado_anterior = 0
+            elif in_comentario:
+                if ascii == 10:  # Salto de línea
+                    in_comentario = False
+                    estado = 0
+                    fila += 1
+                    columna = 1
 
             elif estado == 1:
                 if ascii == 34:  #   "
