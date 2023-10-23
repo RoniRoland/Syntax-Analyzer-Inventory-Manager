@@ -4,6 +4,7 @@ from tkinter import messagebox
 import webbrowser
 from analizador_lexico import Analizador
 from Parser import Parser
+import sys
 
 
 class App:
@@ -207,17 +208,16 @@ class App:
             listaTokens = lexer.tokens_reconocidos
 
             parser = Parser(listaTokens)
-            import sys
 
             stdout_original = sys.stdout
-            sys.stdout = open("result.txt", "w")
+            sys.stdout = open("resultados_sintacticos_temps.txt", "w")
 
             parser.parsear()
 
             sys.stdout.close()
             sys.stdout = stdout_original
 
-            with open("result.txt", "r") as result_file:
+            with open("resultados_sintacticos_temps.txt", "r") as result_file:
                 result_content = result_file.read()
                 result_lines = result_content.splitlines()
                 for line in result_lines:
