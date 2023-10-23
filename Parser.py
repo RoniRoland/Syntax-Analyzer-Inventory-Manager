@@ -217,11 +217,46 @@ class Parser:
             else:
                 print("error: demasiados parámetros en función imprimir")
 
+        elif tipo.lexema == "imprimirln":
+            if len(parametros) == 1:
+                print(parametros[0].lexema)
+            else:
+                print("error: demasiados parámetros en función imprimirln")
+
         elif tipo.lexema == "conteo":
             if len(parametros) == 0:
                 print(len(self.listaRegistros))
             else:
                 print("error: demasiados parámetros en función conteo")
+
+        elif tipo.lexema == "sumar":
+            if len(parametros) == 1:
+                if parametros[0].nombre == "Tk_string":
+                    self.suma(parametros[0].lexema)
+                else:
+                    print(
+                        "error: se esperaba una cadena como parámetro en función sumar"
+                    )
+            else:
+                print("error: demasiados parámetros en función sumar")
+
+        elif tipo.lexema == "max":
+            if len(parametros) == 1:
+                if parametros[0].nombre == "Tk_string":
+                    self.max(parametros[0].lexema)
+                else:
+                    print("error: se esperaba una cadena como parámetro en función max")
+            else:
+                print("error: demasiados parámetros en función max")
+
+        elif tipo.lexema == "min":
+            if len(parametros) == 1:
+                if parametros[0].nombre == "Tk_string":
+                    self.min(parametros[0].lexema)
+                else:
+                    print("error: se esperaba una cadena como parámetro en función min")
+            else:
+                print("error: demasiados parámetros en función min")
 
         elif tipo.lexema == "promedio":
             if len(parametros) == 1:
@@ -254,3 +289,52 @@ class Parser:
             if len(self.listaRegistros) > 0:
                 promedio = suma / len(self.listaRegistros)
             print(promedio)
+
+    def suma(self, campo):
+        encontrado = False
+        posicion = -1
+        for c in self.listaClaves:
+            posicion += 1
+            if c == campo:
+                encontrado = True
+                break
+        if encontrado:
+            suma = 0
+            for registro in self.listaRegistros:
+                if isinstance(registro[posicion], str):
+                    suma += len(registro[posicion])
+                else:
+                    suma += registro[posicion]
+            print(suma)
+
+    def max(self, campo):
+        encontrado = False
+        posicion = -1
+        for c in self.listaClaves:
+            posicion += 1
+            if c == campo:
+                encontrado = True
+                break
+        if encontrado:
+            maximo = None
+            for registro in self.listaRegistros:
+                valor = registro[posicion]
+                if maximo is None or valor > maximo:
+                    maximo = valor
+            print(maximo)
+
+    def min(self, campo):
+        encontrado = False
+        posicion = -1
+        for c in self.listaClaves:
+            posicion += 1
+            if c == campo:
+                encontrado = True
+                break
+        if encontrado:
+            minimo = None
+            for registro in self.listaRegistros:
+                valor = registro[posicion]
+                if minimo is None or valor < minimo:
+                    minimo = valor
+            print(minimo)
