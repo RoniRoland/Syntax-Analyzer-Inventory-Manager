@@ -7,8 +7,8 @@ from Parser import Parser
 
 
 class App:
-    ANCHO = 1250
-    ALTO = 815
+    ANCHO = 1520
+    ALTO = 1045
 
     def __init__(self):
         # Crear la ventana principal
@@ -48,6 +48,7 @@ class App:
             15,
         )
         self.text_area1.tag_configure("my_font", font=text_style)
+        self.text_area2.tag_configure("my_font", font=text_style)
 
         # Crear los botones de "Archivo"
         botones_archivo = tk.Frame(self.marco_archivo, background="#263238")
@@ -197,37 +198,34 @@ class App:
             with open(self.file_path, "r") as archivo:
                 for i in archivo.readlines():
                     lineas += i
-            self.text_area2.delete("1.0", tk.END)  # limpia el área de texto
-            self.text_area2.insert(tk.END, lineas)
+            self.text_area1.delete("1.0", tk.END)  # limpia el área de texto
+            self.text_area1.insert(tk.END, lineas, "my_font")
 
             # Ahora, puedes crear una instancia de Analizador con el contenido del archivo
             lexer = Analizador(lineas)
             lexer.analizar()
             listaTokens = lexer.tokens_reconocidos
 
-            # Limpia el área de texto antes de mostrar los resultados
-            self.text_area2.delete("1.0", tk.END)
+            parser = Parser(listaTokens)
+            import sys
 
-            # Muestra los tokens en el área de texto
-            self.text_area2.insert(
-                tk.END,
-                "\n*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-*-*-*-*-*-*-*-* Tokens *-*-*-*-*-*-*-*-*-*-*-*-*-**-*-*-*-*-*-*-*-*-**\n",
-            )
-            self.text_area2.insert(
-                tk.END,
-                "\n",
-            )
-            for token in listaTokens:
-                self.text_area2.insert(
-                    tk.END, "============> " + str(token) + " <============" + "\n"
-                )
+            stdout_original = sys.stdout
+            sys.stdout = open("result.txt", "w")
+
+            parser.parsear()
+
+            sys.stdout.close()
+            sys.stdout = stdout_original
+
+            with open("result.txt", "r") as result_file:
+                result_content = result_file.read()
+                result_lines = result_content.splitlines()
+                for line in result_lines:
+                    self.text_area2.insert(tk.END, ">>>>>  " + line + "\n", "my_font")
 
             messagebox.showinfo(
                 "Análisis Completado", "El análisis se ha completado correctamente."
             )
-
-            parser = Parser(listaTokens)
-            parser.parsear()
 
         else:
             messagebox.showerror(
@@ -292,6 +290,59 @@ class App:
             )
             return
 
+    def errores(self):
+        global lineas
+        lineas = ""
+        if self.file_path:
+            with open(self.file_path, "r") as archivo:
+                for i in archivo.readlines():
+                    lineas += i
+
+            # Ahora, puedes crear una instancia de Analizador con el contenido del archivo
+            lexer = Analizador(lineas)
+            lexer.analizar()
+
+            if not lexer.errores:
+                # Si no hay errores, mostrar un mensaje
+                messagebox.showinfo(
+                    "Sin Errores", "No se encontraron errores en el código."
+                )
+                return  # Salir de la función si no hay errores
+
+            # Construye una tabla HTML con los errores
+            errores_html = (
+                "<html><head><title>Errores</title></head><body>"
+                "<h1 style='background-color: #0059b3; color: white; padding: 10px;'>Errores</h1>"
+                "<table style='width: 100%; border-collapse: collapse; border: 1px solid #ddd;'>\n"
+                "<tr style='background-color: #f2f2f2;'><th style='padding: 15px; text-align: left;'>Tipo</th>"
+                "<th style='padding: 15px; text-align: left;'>Lexema</th>"
+                "<th style='padding: 15px; text-align: left;'>Columna</th>"
+                "<th style='padding: 15px; text-align: left;'>Fila</th></tr>\n"
+            )
+
+            for error in lexer.errores:
+                errores_html += (
+                    f"<tr><td style='padding: 15px; text-align: left;'>{error.tipo}</td>"
+                    f"<td style='padding: 15px; text-align: left;'>{error.lexema}</td>"
+                    f"<td style='padding: 15px; text-align: left;'>{error.columna}</td>"
+                    f"<td style='padding: 15px; text-align: left;'>{error.fila}</td></tr>\n"
+                )
+
+            errores_html += "</table></body></html>"
+
+            # Crea un archivo HTML llamado ERRORES.html y escribe la tabla de errores en él
+            with open("ERRORES.html", "w") as errores_file:
+                errores_file.write(errores_html)
+
+            # Abre el archivo HTML en el navegador web predeterminado
+            webbrowser.open("ERRORES.html")
+
+        else:
+            messagebox.showerror(
+                "Archivo no seleccionado",
+                "Por favor, seleccione un archivo antes de verificar los errores.",
+            )
+
     def ver_arbol(self):
         if self.file_path:
             pass
@@ -300,16 +351,6 @@ class App:
             messagebox.showerror(
                 "Archivo no seleccionado",
                 "Por favor, abra un archivo antes de ver el arbol.",
-            )
-
-    def errores(self):
-        if self.file_path:
-            pass
-        else:
-            # Muestra un mensaje de advertencia si no hay archivo abierto
-            messagebox.showerror(
-                "Archivo no seleccionado",
-                "Por favor, abra un archivo antes de ver los errores.",
             )
 
     def salir(self):
