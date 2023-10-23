@@ -229,6 +229,46 @@ class Parser:
             else:
                 print("error: demasiados parámetros en función conteo")
 
+        elif tipo.lexema == "contarsi":
+            if len(parametros) == 2:
+                campo = parametros[0].lexema
+                valor = parametros[1].lexema
+                contador = sum(
+                    1
+                    for registro in self.listaRegistros
+                    if registro[self.listaClaves.index(campo)] == valor
+                )
+                print(contador)
+            else:
+                print("error: se esperaban dos parámetros en función contarsi")
+
+        elif tipo.lexema == "datos":
+            if len(parametros) == 0:
+
+                def formatear_valor(valor):
+                    return str(valor).replace('"', "")
+
+                listaClaves_formateadas = list(map(formatear_valor, self.listaClaves))
+                formato = "{:<10} {:<20} {:<20} {:<20} {:<10}"
+                encabezados = formato.format(*listaClaves_formateadas)
+                print(encabezados)
+                for registro in self.listaRegistros:
+                    # Convierte los valores a cadenas y formatea
+                    valores_formateados = formato.format(
+                        *map(formatear_valor, registro)
+                    )
+                    print(valores_formateados)
+            else:
+                print("error: demasiados parámetros en función datos")
+
+        elif tipo.lexema == "exportarReporte":
+            if len(parametros) == 1:
+                self.exportarReporte(parametros[0].lexema)
+            else:
+                print(
+                    "error: número incorrecto de parámetros en función exportarReporte"
+                )
+
         elif tipo.lexema == "sumar":
             if len(parametros) == 1:
                 if parametros[0].nombre == "Tk_string":
@@ -338,3 +378,69 @@ class Parser:
                 if minimo is None or valor < minimo:
                     minimo = valor
             print(minimo)
+
+    def exportarReporte(self, titulo_reporte):
+        # Crea el contenido del archivo HTML
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+    <title>{titulo_reporte}</title>
+    <style>
+        table {{
+            border-collapse: collapse;
+            width: 100%;
+        }}
+        th, td {{
+            padding: 8px;
+            text-align: left;
+        }}
+        th {{
+            background-color: #f2f2f2; /* Color de fondo para celdas de encabezado */
+        }}
+        tr:nth-child(even) {{
+            background-color: #f2f2f2; /* Color de fondo para filas pares */
+        }}
+        tr:nth-child(odd) {{
+            background-color: #ffffff; /* Color de fondo para filas impares */
+        }}
+        th, td {{
+            border: 1px solid #dddddd;
+        }}
+    </style>
+</head>
+<body>
+    <h1>{titulo_reporte}</h1>
+    <table>
+        <tr>
+            """
+
+        # Agrega los encabezados a la tabla
+        for clave in self.listaClaves:
+            clv_str = str(clave).replace('"', "")
+            html_content += f"<th>{clv_str}</th>"
+
+        html_content += "</tr>"
+
+        # Agrega los registros a la tabla
+        for registro in self.listaRegistros:
+            html_content += "<tr>"
+            for valor in registro:
+                valor_str = str(valor).replace('"', "")
+                html_content += f"<td>{valor_str}</td>"
+            html_content += "</tr>"
+
+        # Cierra el archivo HTML
+        html_content += """
+        </table>
+    </body>
+    </html>
+    """
+
+        # Escribe el contenido en un archivo HTML
+        with open("reporte.html", "w") as file:
+            file.write(html_content)
+
+        # Abre el archivo HTML en el navegador predeterminado
+        import webbrowser
+
+        webbrowser.open("reporte.html")
