@@ -164,6 +164,8 @@ class App:
             for i in archivo.readlines():
                 lineas += i
             self.text_area1.delete("1.0", tk.END)  # limpia el area de texto
+            self.text_area2.configure(state=tk.NORMAL)
+            self.text_area2.delete("1.0", tk.END)
             self.text_area1.insert(tk.END, lineas, "my_font")
 
             # Muestra el mensaje de archivo cargado exitosamente
@@ -200,6 +202,8 @@ class App:
                 for i in archivo.readlines():
                     lineas += i
             self.text_area1.delete("1.0", tk.END)  # limpia el área de texto
+            self.text_area2.delete("1.0", tk.END)
+
             self.text_area1.insert(tk.END, lineas, "my_font")
 
             # Ahora, puedes crear una instancia de Analizador con el contenido del archivo
@@ -222,7 +226,7 @@ class App:
                 result_lines = result_content.splitlines()
                 for line in result_lines:
                     self.text_area2.insert(tk.END, ">>>>>  " + line + "\n", "my_font")
-
+                self.text_area2.configure(state=tk.DISABLED)
             messagebox.showinfo(
                 "Análisis Completado", "El análisis se ha completado correctamente."
             )
