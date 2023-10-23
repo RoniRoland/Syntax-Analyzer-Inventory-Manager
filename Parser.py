@@ -54,10 +54,13 @@ class Parser:
                         if self.tokens[0].nombre == "Tk_corcheteCierra":
                             self.tokens.pop(0)
                         else:
+                            self.recuperar("Tk_palabraReservada")
                             print("error: se esperaba un corchete de cierre")
                     else:
+                        self.recuperarDos("Tk_signoComa", "Tk_corcheteCierra")
                         print("error: se esperaba una cadena")
                 else:
+                    self.recuperar("Tk_string")
                     print("Error: se esparaba corchete de apertura")
             else:
                 self.recuperar("Tk_corcheteAbre")
@@ -380,32 +383,22 @@ class Parser:
             print(minimo)
 
     def exportarReporte(self, titulo_reporte):
-        # Crea el contenido del archivo HTML
+        titulo_reporte = titulo_reporte.replace('"', "")
+        # Crea el contenido del archivo HTML con el mismo estilo que ver_tokens
         html_content = f"""<!DOCTYPE html>
 <html>
 <head>
     <title>{titulo_reporte}</title>
     <style>
+        body {{ font-family: Arial, sans-serif; }}
+        h1 {{ background-color: #0059b3; color: white; padding: 10px; }}
         table {{
-            border-collapse: collapse;
             width: 100%;
+            border-collapse: collapse;
         }}
-        th, td {{
-            padding: 8px;
-            text-align: left;
-        }}
-        th {{
-            background-color: #f2f2f2; /* Color de fondo para celdas de encabezado */
-        }}
-        tr:nth-child(even) {{
-            background-color: #f2f2f2; /* Color de fondo para filas pares */
-        }}
-        tr:nth-child(odd) {{
-            background-color: #ffffff; /* Color de fondo para filas impares */
-        }}
-        th, td {{
-            border: 1px solid #dddddd;
-        }}
+        table, th, td {{ border: 1px solid #ddd; }}
+        th, td {{ padding: 15px; text-align: left; }}
+        tr:nth-child(even) {{ background-color: #f2f2f2; }}
     </style>
 </head>
 <body>
