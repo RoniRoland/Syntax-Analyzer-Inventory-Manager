@@ -22,7 +22,7 @@ class App:
         # Crear el marco para los botones de "Archivo"
         self.marco_archivo = tk.LabelFrame(
             self.ventana_principal,
-            text="Archivo",
+            text="Menu Principal",
             font=("Roboto Medium", 20),
             background="#263238",
             foreground="white",
@@ -201,7 +201,8 @@ class App:
             with open(self.file_path, "r") as archivo:
                 for i in archivo.readlines():
                     lineas += i
-            self.text_area1.delete("1.0", tk.END)  # limpia el área de texto
+            self.text_area1.delete("1.0", tk.END)
+            self.text_area2.configure(state=tk.NORMAL)  # limpia el área de texto
             self.text_area2.delete("1.0", tk.END)
 
             self.text_area1.insert(tk.END, lineas, "my_font")
