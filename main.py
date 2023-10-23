@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
+import webbrowser
 from analizador_lexico import Analizador
 from Parser import Parser
 
@@ -236,14 +237,60 @@ class App:
             return  # Salir de la función si no hay archivo cargado
 
     def ver_tokens(self):
+        global lineas
+        lineas = ""
+        listaTokens = []
+
         if self.file_path:
-            pass
+            with open(self.file_path, "r") as archivo:
+                for i in archivo.readlines():
+                    lineas += i
+            self.text_area2.delete("1.0", tk.END)  # limpia el área de texto
+            self.text_area2.insert(tk.END, lineas)
+
+            # Ahora, puedes crear una instancia de Analizador con el contenido del archivo
+            lexer = Analizador(lineas)
+            lexer.analizar()
+            listaTokens = lexer.tokens_reconocidos
+
+            # Limpia el área de texto antes de mostrar los resultados
+            self.text_area2.delete("1.0", tk.END)
+
+            # Crea el archivo HTML con la tabla
+            with open("tokens_report.html", "w") as html_file:
+                html_file.write("<html>\n<head>\n")
+                html_file.write("<style>\n")
+                html_file.write("body { font-family: Arial, sans-serif; }\n")
+                html_file.write(
+                    "h1 { background-color: #0059b3; color: white; padding: 10px; }\n"
+                )
+                html_file.write("table { width: 100%; border-collapse: collapse; }\n")
+                html_file.write("table, th, td { border: 1px solid #ddd; }\n")
+                html_file.write("th, td { padding: 15px; text-align: left; }\n")
+                html_file.write("tr:nth-child(even) { background-color: #f2f2f2; }\n")
+                html_file.write("</style>\n")
+                html_file.write("</head>\n<body>\n")
+                html_file.write("<h1>Tokens Reconocidos</h1>\n")
+                html_file.write("<table>\n")
+                html_file.write(
+                    "<tr><th>Tipo</th><th>Lexema Encontrado</th><th>Fila</th><th>Columna</th></tr>\n"
+                )
+                for token in listaTokens:
+                    html_file.write(
+                        f"<tr><td>{token.nombre}</td><td>{token.lexema}</td><td>{token.fila}</td><td>{token.columna}</td></tr>\n"
+                    )
+                html_file.write("</table>\n")
+                html_file.write("</body>\n</html>")
+
+            # Abre el archivo HTML en el navegador web
+            webbrowser.open("tokens_report.html")
+
         else:
-            # Muestra un mensaje de advertencia si no hay archivo abierto
             messagebox.showerror(
-                "Archivo no seleccionado",
-                "Por favor, abra un archivo antes de ver los tokens.",
+                "Archivo no cargado",
+                "Por favor, cargue un archivo antes de realizar el análisis.",
             )
+            return
 
     def ver_arbol(self):
         if self.file_path:
