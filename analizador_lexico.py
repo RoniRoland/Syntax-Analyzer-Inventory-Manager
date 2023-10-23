@@ -10,7 +10,7 @@ class Analizador:
 
     def isSimboloValido(self, ascii):
         if (
-            ascii == 123  #  { } [ ]  ,  () = ;
+            ascii == 123  # { } [ ] , () = ;
             or ascii == 125
             or ascii == 91
             or ascii == 93
@@ -51,41 +51,56 @@ class Analizador:
 
         self.tokens_reconocidos = []
         self.errores = []
-        in_comentario = False
 
-        # Análisis de caracter por caracter
+        in_comentario = False
+        comentario_multilinea = False
+        comillas_triples = 0
+
         for caracter in self.texto:
             ascii = ord(caracter)
+
             if estado == 0:
-                if ascii == 34:  #   "
+                if ascii == 34:  # "
                     lexema += caracter
                     estado = 1
                     estado_anterior = 0
-                elif caracter.isdigit() or caracter == "-":  # 1-9
+                elif caracter.isdigit() or caracter == "-":
                     lexema += str(caracter)
                     estado = 2
                     estado_anterior = 0
-                elif self.isSimboloValido(ascii):  #  { } [ ]  ,  :
+                elif self.isSimboloValido(ascii):
                     lexema += caracter
                     estado = 10
                     estado_anterior = 0
-                elif caracter.isalpha():  #  A-Z
+                elif caracter.isalpha():
                     lexema += caracter
                     estado = 3
                     estado_anterior = 0
                 elif caracter == "#":
                     in_comentario = True
+                elif caracter == "'":
+                    if comillas_triples == 0:
+                        comillas_triples += 1
+                        lexema += caracter
+                    elif comillas_triples == 1:
+                        if ascii == 10 or ascii == 32:
+                            comentario_multilinea = not comentario_multilinea
+                            comillas_triples = 0
+                            lexema = ""
+                        else:
+                            lexema += caracter
+                    else:
+                        if lexema.endswith("'''") or lexema.endswith('"""'):
+                            comentario_multilinea = False
+                            comillas_triples = 0
+                            lexema = ""
                 else:
-                    # Se omiten espacios, tabulaciones y saltos de línea
                     if ascii == 32 or ascii == 9 or ascii == 10:
                         pass
                     else:
-                        # error
                         self.errores.append(
                             Error(caracter, "Léxico", columna - len(lexema), fila)
                         )
-
-                    # Reinicio del lexema
                     lexema = ""
                     estado = 0
                     estado_anterior = 0
@@ -95,9 +110,18 @@ class Analizador:
                     estado = 0
                     fila += 1
                     columna = 1
-
+            elif comentario_multilinea:
+                if comillas_triples == 0:
+                    pass  # Ignorar el contenido del comentario multilineal
+                elif comillas_triples == 2:
+                    if lexema.endswith("'''") or lexema.endswith('"""'):
+                        comentario_multilinea = False
+                        comillas_triples = 0
+                        lexema = ""
+                else:
+                    lexema += caracter
             elif estado == 1:
-                if ascii == 34:  #   "
+                if ascii == 34:  # "
                     lexema += caracter
                     estado = 10
                     estado_anterior = 1
@@ -109,10 +133,8 @@ class Analizador:
                     self.errores.append(
                         Error(lexema, "Léxico", columna - len(lexema), fila)
                     )
-                    # Reinicio del lexema
                     lexema = ""
                     estado = 0
-
             elif estado == 3:
                 if caracter.isalpha():
                     lexema += caracter
@@ -144,10 +166,8 @@ class Analizador:
                         self.errores.append(
                             Error(lexema, "Léxico", columna - len(lexema), fila)
                         )
-
                         lexema = ""
                         estado = 0
-
             elif estado == 2:
                 if caracter.isdigit():
                     lexema += str(caracter)
@@ -173,14 +193,12 @@ class Analizador:
                         lexema += caracter
                         estado = 1
                         estado_anterior = 0
-                    else:  # Error
+                    else:
                         self.errores.append(
                             Error(caracter, "Léxico", columna - len(lexema), fila)
                         )
-                        # Reinicio del lexema
                         lexema = ""
                         estado = 0
-
             elif estado == 4:
                 if caracter.isdigit():
                     lexema += str(caracter)
@@ -202,55 +220,53 @@ class Analizador:
                         lexema += caracter
                         estado = 1
                         estado_anterior = 0
-                    else:  # Error
+                    else:
                         self.errores.append(
                             Error(caracter, "Léxico", columna - len(lexema), fila)
                         )
-                        # Reinicio del lexema
                         lexema = ""
                         estado = 0
-
             elif estado == 10:
                 if estado_anterior == 0 or estado_anterior == 2:
                     if lexema == "=":
                         self.tokens_reconocidos.append(
                             Token("Tk_signoIgual", lexema, fila, columna - len(lexema))
                         )
-                    elif lexema == "[":  # { } [ ]  ,
+                    elif lexema == "[":
                         self.tokens_reconocidos.append(
                             Token(
                                 "Tk_corcheteAbre", lexema, fila, columna - len(lexema)
                             )
                         )
-                    elif lexema == "]":  # { } [ ]  ,
+                    elif lexema == "]":
                         self.tokens_reconocidos.append(
                             Token(
                                 "Tk_corcheteCierra", lexema, fila, columna - len(lexema)
                             )
                         )
-                    elif lexema == ",":  # { } [ ]  ,
+                    elif lexema == ",":
                         self.tokens_reconocidos.append(
                             Token("Tk_signoComa", lexema, fila, columna - len(lexema))
                         )
-                    elif lexema == "{":  # { } [ ]  ,
+                    elif lexema == "{":
                         self.tokens_reconocidos.append(
                             Token("Tk_llaveAbre", lexema, fila, columna - len(lexema))
                         )
-                    elif lexema == "}":  # { } [ ]  ,
+                    elif lexema == "}":
                         self.tokens_reconocidos.append(
                             Token("Tk_llaveCierra", lexema, fila, columna - len(lexema))
                         )
-                    elif lexema == "(":  # { } [ ]  ,
+                    elif lexema == "(":
                         self.tokens_reconocidos.append(
                             Token("Tk_parentAbre", lexema, fila, columna - len(lexema))
                         )
-                    elif lexema == ")":  # { } [ ]  ,
+                    elif lexema == ")":
                         self.tokens_reconocidos.append(
                             Token(
                                 "Tk_parentCierra", lexema, fila, columna - len(lexema)
                             )
                         )
-                    elif lexema == ";":  # { } [ ]  ,
+                    elif lexema == ";":
                         self.tokens_reconocidos.append(
                             Token(
                                 "Tk_signoPuntoComa", lexema, fila, columna - len(lexema)
@@ -263,48 +279,35 @@ class Analizador:
 
                 lexema = ""
 
-                if ascii == 34:  #   "
+                if ascii == 34:  # "
                     lexema += caracter
                     estado = 1
                     estado_anterior = 0
-                elif caracter.isdigit():  # 0-9
+                elif caracter.isdigit():
                     lexema += str(caracter)
                     estado = 2
                     estado_anterior = 0
-                elif self.isSimboloValido(ascii):  #  { } [ ]  ,  :
+                elif self.isSimboloValido(ascii):
                     lexema += caracter
                     estado = 10
                     estado_anterior = 0
-
                 else:
-                    # Se omiten espacios, tabulaciones y saltos de línea
                     if ascii == 32 or ascii == 9 or ascii == 10:
                         pass
                     else:
-                        # error
                         self.errores.append(
                             Error(caracter, "Léxico", columna - len(lexema), fila)
                         )
-
-                    # Reinicio del lexema
                     lexema = ""
                     estado = 0
                     estado_anterior = 0
 
-            # Control de lineas y columnas
-
-            # Salto de línea
             if ascii == 10:
                 fila += 1
                 columna = 1
-                continue
-            # Tabulación
             elif ascii == 9:
                 columna += 4
-                continue
-            # Espacio
             elif ascii == 32:
                 columna += 1
-                continue
-
-            columna += 1
+            else:
+                columna += 1
