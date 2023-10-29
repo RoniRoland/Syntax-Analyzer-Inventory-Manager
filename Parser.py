@@ -210,19 +210,23 @@ class Parser:
             self.funcion()
             self.otraFuncion()
         else:
-            print("Análisis terminado")
+            pass
 
     # Operación de funciones
     def operarFuncion(self, tipo, parametros):
         if tipo.lexema == "imprimir":
             if len(parametros) == 1:
-                print(parametros[0].lexema)
+                output = " ".join(param.lexema for param in parametros)
+                output = str(output).replace('"', "")
+                print(output)
             else:
                 print("error: demasiados parámetros en función imprimir")
 
         elif tipo.lexema == "imprimirln":
             if len(parametros) == 1:
-                print(parametros[0].lexema)
+                text = parametros[0].lexema
+                text = str(text).replace('"', "")
+                print(text)
             else:
                 print("error: demasiados parámetros en función imprimirln")
 
